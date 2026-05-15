@@ -1,0 +1,13 @@
+{
+  "name": "frontend-monorepo",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "build": "lerna run build",
+    "test": "lerna run test",
+    "lint": "lerna run lint"
+  },
+  "devDependencies": {
+    "lerna": "^8.0.0"
+  }
+}

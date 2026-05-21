@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './App.css'
+import { UploadButton } from './components/UploadButton'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -20,6 +21,7 @@ function App() {
         >
           Count is {count}
         </button>
+        <UploadButton />
       </section>
 
       <div className="ticks"></div>

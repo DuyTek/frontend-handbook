@@ -1,15 +1,21 @@
+/**
+ * @description: Debounce function ensures that the debounced func is called after a wait milliseconds have elapsed since the last time it was invoked. 
+ * If the debounced function is called again before the wait time has elapsed, the previous timer is canceled and a new timer is set.
+ * @param {} func 
+ * @param {*} wait 
+ * @returns 
+ */
 export const debounce = (func, wait) => {
     let timeoutId;
     let lastArgs;
-    let lastCall;
 
     function debounced (...args) {
+        lastArgs = args;
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => {
-            func(...args)
+            func(...lastArgs);
             timeoutId = null;
-            lastArgs = args;
-            lastCall = func;
+            lastArgs = null;
         }, wait);
     }
 
@@ -17,13 +23,14 @@ export const debounce = (func, wait) => {
         clearTimeout(timeoutId);
         timeoutId = null;
         lastArgs = null;
-        lastCall = null;
     }
 
     debounced.flush = () => {
-        if (timeoutId && lastCall) {
+        if (timeoutId) {
             clearTimeout(timeoutId);
-            lastCall(...lastArgs);
+            timeoutId = null;
+            func(...lastArgs);
+            lastArgs = null;
         }
     }
     

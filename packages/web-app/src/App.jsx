@@ -1,100 +1,56 @@
-import { useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import './App.css'
-import { UploadButton } from './components/UploadButton'
+import { SearchInput } from './components/SearchInput'
+import { ProductCard } from './components/ProductCard';
+// import { debounce } from './util/debounce';
+import { throttle } from './util/throttle';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [products, setProducts] = useState([]);
+  const [input, setInput] = useState('')
+
+  const debouncedSetInput = useMemo(() => throttle(setInput, 100), [])
+
+  const handleOnChange = (e) => {
+    debouncedSetInput(e.target.value)
+  }
+
+  const productMemo = useMemo(() => {
+    if (Array.isArray(products) && products.length > 0) {
+      const term = input.trim().toLowerCase()
+      const list = term
+        ? products.filter((product) => product.name.toLowerCase().includes(term))
+        : products
+      return list.length > 0
+        ? list.map((product) => (
+          <ProductCard key={product.id} {...product} image={{ src: product.image, height: product.imageHeight, width: product.imageWidth }} />
+        ))
+        : "No matching products"
+    }
+    return "No products available"
+  }, [products, input])
+
+  useEffect(() => {
+    fetch('http://localhost:5173/data/mock-data.json').then(async (res) => {
+      try {
+        const { products } = await res.json()
+        setProducts(products)
+      } catch (error) {
+        console.error(error)
+      }
+    })
+  }, [])
 
   return (
     <>
       <section id="center">
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-        <UploadButton />
+        <SearchInput value={input} onChangeCallback={handleOnChange} />
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
+      <Suspense fallback="Loading products...">
+        <section style={{ width: '100%', height: '100%', maxHeight: '600px' }}>
+          {productMemo}
+        </section>
+      </Suspense>
     </>
   )
 }

@@ -12,6 +12,8 @@ const navLinks = [
   { label: 'Thực hành', href: '#thuc-hanh' },
 ];
 
+const routeLinks = [{ label: 'Giám sát', to: '/dashboard' }];
+
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   return (
@@ -49,6 +51,15 @@ export default function Header() {
               >
                 {link.label}
               </a>
+            ))}
+            {routeLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline"
+              >
+                {link.label}
+              </Link>
             ))}
           </nav>
 
@@ -88,6 +99,16 @@ export default function Header() {
               >
                 {link.label}
               </a>
+            ))}
+            {routeLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors no-underline py-1"
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </Link>
             ))}
             <a
               href="#bat-dau"

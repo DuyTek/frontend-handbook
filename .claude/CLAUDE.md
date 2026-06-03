@@ -9,3 +9,18 @@ Create a Vietnamese-friendly website for instructing people, anybody regardless 
 
 # References
 - Design system: ./DESIGN.md
+
+# Surgical changes
+- Don't changes files that originally YOU did not create in the session.
+- If you see problems with existing code, raise it and surface with justification instead of silently fixing it.
+- Don't remove pre-existing dead codes unless asked.
+
+# Think before coding
+**DO NOT make assumption. If you're see ambiguous statement, ask.**
+- Surface tradeoffs and avoid hiding confusion. Ask or pushback if necessary
+
+# Goal-driven development
+**Transform request into measureable tasks**
+- "Add unit test" --> State regression paths that must be covered
+- "Fix this" --> Identify root cause and write test to reproduce the problem. Then fix it with tests.
+- "Refactor this" --> Circle impact code areas and make sure it works before and after.

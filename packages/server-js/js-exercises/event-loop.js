@@ -1,147 +1,151 @@
-/**
- * TOPIC: Event Loop
- * Covers: call stack, Web APIs, microtask queue, macrotask queue, starvation
- */
+// HARD EVENT LOOP QUIZ
+// Write down the order 1-N for each exercise
+// Submit your answers, I'll check
 
-// ─────────────────────────────────────────────
-// EXECUTION ORDER RULE (memorise this)
-// ─────────────────────────────────────────────
-//
-//  Per tick:
-//  1. Run all synchronous code (call stack empties)
-//  2. Drain the ENTIRE microtask queue (including newly added microtasks)
-//  3. Pick ONE macrotask → run it → go back to step 2
-//
-// Microtask queue:  Promise.then / catch / finally, queueMicrotask()
-// Macrotask queue:  setTimeout, setInterval, setImmediate, I/O callbacks
-
-// ─────────────────────────────────────────────
-// 1. BASIC ORDERING
-// ─────────────────────────────────────────────
-
-console.log('1');                              // sync  → call stack
-
-setTimeout(() => console.log('2'), 0);        // macrotask → goes to Web API, then task queue
-
-Promise.resolve().then(() => console.log('3')); // microtask → microtask queue
-
-console.log('4');                              // sync  → call stack
-
-// Output: 1, 4, 3, 2
-// Why: sync first (1, 4) → microtask queue drained (3) → macrotask picked (2)
-
-// ─────────────────────────────────────────────
-// 2. MICROTASK CHAIN — all run before any macrotask
-// ─────────────────────────────────────────────
-
-setTimeout(() => console.log('macrotask'), 0);
-
+// ============================================
+// EXERCISE 1: Promise chains + setTimeout
+// ============================================
+console.log('Q1-A');
+setTimeout(() => console.log('Q1-B'), 0);
 Promise.resolve()
-    .then(() => {
-        console.log('microtask 1');
-        return Promise.resolve();
-    })
-    .then(() => console.log('microtask 2')) // NEW microtask added during drain
-    .then(() => console.log('microtask 3'));
+  .then(() => {
+    console.log('Q1-C');
+    return Promise.resolve();
+  })
+  .then(() => console.log('Q1-D'));
+console.log('Q1-E');
 
-// Output: microtask 1, microtask 2, microtask 3, macrotask
-// The chain keeps adding microtasks — ALL drain before the setTimeout fires.
+// Expected output order: ________
 
-// ─────────────────────────────────────────────
-// 3. MICROTASK STARVATION — a real danger
-// ─────────────────────────────────────────────
 
-// ❌ Infinite microtask chain — the macrotask queue NEVER gets processed.
-// The browser cannot repaint, click handlers do not fire, the page freezes.
-//
-// function infiniteChain() {
-//     Promise.resolve().then(infiniteChain);
-// }
-// infiniteChain(); // DO NOT run — page will hang
+// ============================================
+// EXERCISE 2: Nested promises + constructor
+// ============================================
+console.log('Q2-A');
+new Promise(resolve => {
+  console.log('Q2-B');
+  Promise.resolve().then(() => console.log('Q2-C'));
+  resolve();
+}).then(() => console.log('Q2-D'));
+console.log('Q2-E');
 
-// ✅ Safe alternative for long async work: break it into macrotasks
-function yieldToMacrotask() {
-    return new Promise(resolve => setTimeout(resolve, 0));
+// Expected output order: ________
+
+
+// ============================================
+// EXERCISE 3: async/await deception
+// ============================================
+async function test() {
+  console.log('Q3-A');
+  await Promise.resolve();
+  console.log('Q3-B');
 }
+console.log('Q3-C');
+test();
+Promise.resolve().then(() => console.log('Q3-D'));
+console.log('Q3-E');
 
-async function longTask() {
-    for (let i = 0; i < 1000; i++) {
-        doWork(i);
-        if (i % 100 === 0) await yieldToMacrotask(); // give the browser a chance to breathe
-    }
+// Expected output order: ________
+
+
+// ============================================
+// EXERCISE 4: Chained setTimeout + Promise
+// ============================================
+setTimeout(() => {
+  console.log('Q4-A');
+  Promise.resolve().then(() => console.log('Q4-B'));
+}, 0);
+Promise.resolve().then(() => {
+  console.log('Q4-C');
+  setTimeout(() => console.log('Q4-D'), 0);
+});
+console.log('Q4-E');
+
+// Expected output order: ________
+
+
+// ============================================
+// EXERCISE 5: Multiple awaits + sync
+// ============================================
+async function chain() {
+  console.log('Q5-A');
+  await Promise.resolve();
+  console.log('Q5-B');
+  await Promise.resolve();
+  console.log('Q5-C');
 }
+console.log('Q5-D');
+chain();
+console.log('Q5-E');
 
-function doWork(i) { /* placeholder */ }
+// Expected output order: ________
 
-// ─────────────────────────────────────────────
-// 4. async / await — syntactic sugar over Promises
-// ─────────────────────────────────────────────
 
-// Everything after `await` is a microtask callback under the hood.
+// ============================================
+// EXERCISE 6: The resolver trap
+// ============================================
+new Promise(resolve => {
+  resolve(Promise.resolve());
+}).then(() => console.log('Q6-A'));
+Promise.resolve().then(() => console.log('Q6-B'));
+console.log('Q6-C');
 
-async function example() {
-    console.log('A');           // sync
-    await Promise.resolve();    // suspends here → rest becomes a microtask
-    console.log('B');           // microtask (runs before any macrotask)
+// Expected output order: ________
+
+
+// ============================================
+// EXERCISE 7: Nested async functions
+// ============================================
+async function outer() {
+  console.log('Q7-A');
+  inner();
+  console.log('Q7-B');
 }
+async function inner() {
+  await Promise.resolve();
+  console.log('Q7-C');
+}
+console.log('Q7-D');
+outer();
+console.log('Q7-E');
 
-example();
-console.log('C');               // sync — runs before 'B'
+// Expected output order: ________
 
-// Output: A, C, B
 
-// ─────────────────────────────────────────────
-// 5. PREDICT THE OUTPUT — classic interview question
-// ─────────────────────────────────────────────
+// ============================================
+// EXERCISE 8: Mixed macrotask timing
+// ============================================
+Promise.resolve().then(() => {
+  console.log('Q8-A');
+  setTimeout(() => console.log('Q8-B'), 0);
+});
+setTimeout(() => {
+  console.log('Q8-C');
+  Promise.resolve().then(() => console.log('Q8-D'));
+  setTimeout(() => console.log('Q8-E'), 0);
+}, 0);
 
-console.log('start');
+// Expected output order: ________
 
-setTimeout(() => console.log('setTimeout 1'), 0);
-setTimeout(() => console.log('setTimeout 2'), 0);
 
+// ============================================
+// EXERCISE 9: BRUTAL - All together
+// ============================================
+async function brutal() {
+  console.log('Q9-A');
+  setTimeout(() => console.log('Q9-B'), 0);
+  await Promise.resolve();
+  console.log('Q9-C');
+}
+Promise.resolve().then(() => console.log('Q9-D'));
+console.log('Q9-E');
+brutal();
+setTimeout(() => console.log('Q9-F'), 0);
+console.log('Q9-G');
 Promise.resolve()
-    .then(() => console.log('promise 1'))
-    .then(() => console.log('promise 2'));
+  .then(() => {
+    console.log('Q9-H');
+    setTimeout(() => console.log('Q9-I'), 0);
+  });
 
-console.log('end');
-
-// Output:
-// start
-// end
-// promise 1
-// promise 2
-// setTimeout 1
-// setTimeout 2
-
-// ─────────────────────────────────────────────
-// PRACTICE EXERCISES
-// ─────────────────────────────────────────────
-
-/**
- * Q1: What is the output?
- *
- *   console.log('a');
- *   setTimeout(() => console.log('b'), 0);
- *   Promise.resolve().then(() => {
- *       console.log('c');
- *       Promise.resolve().then(() => console.log('d'));
- *   });
- *   console.log('e');
- *
- * Answer: a, e, c, d, b
- * Reason: sync (a, e) → microtask 1 fires (c) → microtask 1 adds new microtask (d) → d fires → macrotask (b)
- */
-
-/**
- * Q2: Why does the browser freeze when you create an infinite microtask chain?
- *
- * Answer: The event loop drains the entire microtask queue before processing any macrotask.
- * Browser repaints and UI event callbacks are macrotasks — they never get a turn.
- * The page becomes completely unresponsive.
- */
-
-/**
- * Q3: What queue does `queueMicrotask(() => ...)` go into?
- *
- * Answer: Microtask queue — same priority as Promise.then callbacks.
- */
+// Expected output order: ________
